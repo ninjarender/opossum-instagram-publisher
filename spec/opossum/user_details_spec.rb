@@ -29,9 +29,9 @@ RSpec.describe Opossum::UserDetails do
     context "when API call is successful" do
       let(:api_response) do
         {
-          "id" => "123456789",
-          "username" => "test_user",
-          "media_count" => 42
+          id: "123456789",
+          username: "test_user",
+          media_count: 42
         }
       end
 
@@ -86,9 +86,9 @@ RSpec.describe Opossum::UserDetails do
     context "when API call is successful" do
       let(:api_response) do
         {
-          "access_token" => "new_long_lived_token",
-          "token_type" => "bearer",
-          "expires_in" => 5_184_000
+          access_token: "new_long_lived_token",
+          token_type: "bearer",
+          expires_in: 5_184_000
         }
       end
 
@@ -141,9 +141,9 @@ RSpec.describe Opossum::UserDetails do
     context "when API call is successful" do
       let(:api_response) do
         {
-          "access_token" => "refreshed_access_token",
-          "token_type" => "bearer",
-          "expires_in" => 5_184_000
+          access_token: "refreshed_access_token",
+          token_type: "bearer",
+          expires_in: 5_184_000
         }
       end
 

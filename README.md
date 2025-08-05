@@ -16,7 +16,7 @@ Before using this gem, you need to:
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'instagram_publish_api_via_instagram_login'
+gem 'opossum'
 ```
 
 And then execute:
@@ -28,7 +28,7 @@ bundle install
 Or install it yourself as:
 
 ```bash
-gem install instagram_publish_api_via_instagram_login
+gem install oposum
 ```
 
 ## Usage
@@ -38,7 +38,7 @@ This gem provides three independent classes for working with Instagram API:
 ### Authentication
 
 ```ruby
-require 'instagram_publish_api_via_instagram_login'
+require 'opossum'
 
 # Create authenticator
 authenticator = Opossum::Authenticator.new(
@@ -47,27 +47,42 @@ authenticator = Opossum::Authenticator.new(
   redirect_uri: 'your_redirect_uri'
 )
 
-# Exchange code for token
-response = authenticator.exchange_code_for_token(authorization_code)
-access_token = response['access_token']
+# Get user info and long-lived token from authorization code
+result = authenticator.get_user_info_from_code(
+  authorization_code,
+  fields: 'id,user_id'
+)
+# Returns: 
+# { 
+#   access_token: {
+#     access_token: "ACCESS_TOKEN",
+#     token_type: "TOKEN_TYPE",
+#     expires_in: 5183742
+#   },
+#   user_details: {
+#     id: "IG_ID",
+#     user_id: "IG_USER_ID"
+#   }
+# }
+
+# Or get only long-lived token without user details
+result = authenticator.get_user_info_from_code(authorization_code)
+# Returns:
+# { 
+#   access_token: {
+#     access_token: "ACCESS_TOKEN",
+#     token_type: "TOKEN_TYPE",
+#     expires_in: 5183742
+#   }
+# }
 ```
 
-### User Information
+### User Details (Optional)
 
 ```ruby
-# Create user details instance
+# If you need to refresh an existing access token
 user_details = Opossum::UserDetails.new(
-  access_token: access_token
-)
-
-# Get user info
-user_info = user_details.get_user_info(
-  fields: 'id,username,account_type'
-)
-
-# Get long-lived access token (60 days)
-long_lived_token = user_details.get_long_lived_access_token(
-  client_secret: 'your_app_secret'
+  access_token: existing_access_token
 )
 
 # Refresh access token (extends for another 60 days)
@@ -154,7 +169,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/ninjarender/instagram_publish_api_via_instagram_login. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/instagram_publish_api_via_instagram_login/blob/main/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/ninjarender/opossum. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/opossum/blob/main/CODE_OF_CONDUCT.md).
 
 ## License
 
@@ -162,4 +177,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the OpossumInstagramPublisher project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/ninjarender/instagram_publish_api_via_instagram_login/blob/main/CODE_OF_CONDUCT.md).
+Everyone interacting in the OpossumInstagramPublisher project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/ninjarender/opossum/blob/main/CODE_OF_CONDUCT.md).

@@ -12,7 +12,7 @@ module Opossum
       ApiHelper.get(
         path: path,
         params: { access_token: access_token, fields: fields }
-      )
+      ).transform_keys(&:to_sym)
     end
 
     def get_long_lived_access_token(client_secret:)
@@ -21,7 +21,7 @@ module Opossum
       ApiHelper.get(
         path: path,
         params: { access_token: access_token, client_secret: client_secret, grant_type: "ig_exchange_token" }
-      )
+      ).transform_keys(&:to_sym)
     end
 
     def refresh_access_token
@@ -30,7 +30,7 @@ module Opossum
       ApiHelper.get(
         path: path,
         params: { access_token: access_token, grant_type: "ig_refresh_token" }
-      )
+      ).transform_keys(&:to_sym)
     end
   end
 end

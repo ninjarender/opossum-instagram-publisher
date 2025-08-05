@@ -1,7 +1,30 @@
 ## [Unreleased]
 
+### Added
+- **Authenticator#get_user_info_from_code** - New convenience method that combines authentication flow
+  - Exchanges authorization code for access token
+  - Gets long-lived access token (60-day validity)
+  - Optionally retrieves user information with specified fields
+  - Returns `{ access_token: token_hash }` or `{ access_token: token_hash, user_details: user_info }`
+  - Simplifies common authentication workflow into single method call
+
 ### Improved
-- **Code Quality** - Minor code style improvements for better readability
+- **UserDetails API** - All methods now return hashes with symbol keys instead of string keys
+  - `get_user_info` returns `{ id: "...", username: "...", media_count: 42 }` (Ruby convention)
+  - `get_long_lived_access_token` returns `{ access_token: "...", token_type: "bearer", expires_in: 5184000 }`
+  - `refresh_access_token` returns `{ access_token: "...", token_type: "bearer", expires_in: 5184000 }`
+
+### Tests
+- **Complete test suite** - Added comprehensive RSpec test coverage for all components
+  - **Authenticator tests** - Full coverage including new `get_user_info_from_code` method
+    - Tests for both scenarios: with and without fields parameter
+    - Tests for empty fields array handling
+    - Error handling tests for all possible failure points
+    - Mock-based testing with proper isolation
+  - **UserDetails tests** - Updated to work with symbol keys
+  - **Publisher tests** - Complete media publishing workflow coverage
+  - **ApiHelper tests** - HTTP request handling and error scenarios
+  - All 83 tests passing with comprehensive coverage
 
 ## [0.1.0] - 2025-07-31
 

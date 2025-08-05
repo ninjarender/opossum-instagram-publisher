@@ -107,6 +107,153 @@ RSpec.describe Opossum::Authenticator do
     end
   end
 
+  describe "#get_user_info_from_code" do
+    let(:code) { "test_authorization_code" }
+    let(:short_lived_token) { "short_lived_token_123" }
+    let(:long_lived_token) { "long_lived_token_456" }
+    let(:access_token_response) { { "access_token" => short_lived_token, "user_id" => "12345" } }
+    let(:user_details_client) { instance_double(Opossum::UserDetails) }
+
+    before do
+      allow(authenticator).to receive(:exchange_code_for_token).and_return(access_token_response)
+      allow(Opossum::UserDetails).to receive(:new).and_return(user_details_client)
+      allow(user_details_client).to receive(:get_long_lived_access_token).and_return(long_lived_token)
+    end
+
+    context "when fields parameter is not provided" do
+      it "returns only the long-lived access token" do
+        result = authenticator.get_user_info_from_code(code)
+
+        expect(result).to eq({ access_token: long_lived_token })
+      end
+
+      it "exchanges code for token" do
+        authenticator.get_user_info_from_code(code)
+
+        expect(authenticator).to have_received(:exchange_code_for_token).with(code)
+      end
+
+      it "creates UserDetails client with short-lived token" do
+        authenticator.get_user_info_from_code(code)
+
+        expect(Opossum::UserDetails).to have_received(:new).with(access_token: short_lived_token)
+      end
+
+      it "gets long-lived access token" do
+        authenticator.get_user_info_from_code(code)
+
+        expect(user_details_client).to have_received(:get_long_lived_access_token).with(client_secret: client_secret)
+      end
+
+      it "does not call get_user_info" do
+        allow(user_details_client).to receive(:get_user_info)
+
+        authenticator.get_user_info_from_code(code)
+
+        expect(user_details_client).not_to have_received(:get_user_info)
+      end
+    end
+
+    context "when fields parameter is provided" do
+      let(:fields) { "id,username,media_count" }
+      let(:user_info) { { "id" => "12345", "username" => "testuser", "media_count" => 42 } }
+
+      before do
+        allow(user_details_client).to receive(:get_user_info).and_return(user_info)
+      end
+
+      it "returns both access token and user details" do
+        result = authenticator.get_user_info_from_code(code, fields: fields)
+
+        expect(result).to eq({
+                               access_token: long_lived_token,
+                               user_details: user_info
+                             })
+      end
+
+      it "exchanges code for token" do
+        authenticator.get_user_info_from_code(code, fields: fields)
+
+        expect(authenticator).to have_received(:exchange_code_for_token).with(code)
+      end
+
+      it "creates UserDetails client with short-lived token" do
+        authenticator.get_user_info_from_code(code, fields: fields)
+
+        expect(Opossum::UserDetails).to have_received(:new).with(access_token: short_lived_token)
+      end
+
+      it "gets long-lived access token" do
+        authenticator.get_user_info_from_code(code, fields: fields)
+
+        expect(user_details_client).to have_received(:get_long_lived_access_token).with(client_secret: client_secret)
+      end
+
+      it "gets user info with specified fields" do
+        authenticator.get_user_info_from_code(code, fields: fields)
+
+        expect(user_details_client).to have_received(:get_user_info).with(fields: fields)
+      end
+    end
+
+    context "when fields is an empty array" do
+      let(:fields) { [] }
+
+      it "returns only the long-lived access token" do
+        result = authenticator.get_user_info_from_code(code, fields: fields)
+
+        expect(result).to eq({ access_token: long_lived_token })
+      end
+
+      it "does not call get_user_info" do
+        allow(user_details_client).to receive(:get_user_info)
+
+        authenticator.get_user_info_from_code(code, fields: fields)
+
+        expect(user_details_client).not_to have_received(:get_user_info)
+      end
+    end
+
+    context "when exchange_code_for_token fails" do
+      let(:error_message) { "Invalid authorization code" }
+
+      before do
+        allow(authenticator).to receive(:exchange_code_for_token).and_raise(Opossum::Error, error_message)
+      end
+
+      it "propagates the error" do
+        expect { authenticator.get_user_info_from_code(code) }.to raise_error(Opossum::Error, error_message)
+      end
+    end
+
+    context "when get_long_lived_access_token fails" do
+      let(:error_message) { "Failed to get long-lived token" }
+
+      before do
+        allow(user_details_client).to receive(:get_long_lived_access_token).and_raise(Opossum::Error, error_message)
+      end
+
+      it "propagates the error" do
+        expect { authenticator.get_user_info_from_code(code) }.to raise_error(Opossum::Error, error_message)
+      end
+    end
+
+    context "when get_user_info fails" do
+      let(:fields) { "id,username" }
+      let(:error_message) { "Failed to get user info" }
+
+      before do
+        allow(user_details_client).to receive(:get_user_info).and_raise(Opossum::Error, error_message)
+      end
+
+      it "propagates the error" do
+        expect do
+          authenticator.get_user_info_from_code(code, fields: fields)
+        end.to raise_error(Opossum::Error, error_message)
+      end
+    end
+  end
+
   describe "constants" do
     it "defines INSTAGRAM_TOKEN_ENDPOINT" do
       expect(Opossum::Authenticator::INSTAGRAM_TOKEN_ENDPOINT).to eq("https://api.instagram.com")
