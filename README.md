@@ -92,21 +92,20 @@ refreshed_token = user_details.refresh_access_token
 ### Publishing
 
 ```ruby
-# Create publisher with access token
+# Create publisher with access token and Instagram business account ID
 publisher = Opossum::Publisher.new(
-  access_token: access_token
+  access_token: access_token,
+  ig_id: instagram_business_account_id
 )
 
 # Publish single image
 result = publisher.publish_media(
-  ig_id: instagram_business_account_id,
   media_url: 'https://example.com/image.jpg',
   media_type: 'IMAGE'
 )
 
 # Publish image with caption
 result = publisher.publish_media(
-  ig_id: instagram_business_account_id,
   media_url: 'https://example.com/image.jpg',
   media_type: 'IMAGE',
   caption: 'Beautiful sunset! 🌅 #nature #photography'
@@ -114,7 +113,6 @@ result = publisher.publish_media(
 
 # Publish carousel with caption
 result = publisher.publish_media(
-  ig_id: instagram_business_account_id,
   media_url: [
     'https://example.com/image1.jpg',
     'https://example.com/image2.jpg'
@@ -137,9 +135,12 @@ The gem includes comprehensive error handling for API responses:
 
 ```ruby
 begin
-  result = client.publish_media(
-    ig_id: instagram_business_account_id,
+  publisher = Opossum::Publisher.new(
     access_token: access_token,
+    ig_id: instagram_business_account_id
+  )
+  
+  result = publisher.publish_media(
     media_url: 'https://example.com/image.jpg'
   )
 rescue Opossum::Error => e

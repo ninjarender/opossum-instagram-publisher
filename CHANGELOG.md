@@ -1,4 +1,11 @@
-## [Unreleased]
+## [0.2.0] - 2025-08-06
+
+### Changed
+- **Publisher class initialization** - Improved API design for better usability
+  - Constructor now requires `ig_id` parameter: `Publisher.new(access_token: token, ig_id: account_id)`
+  - `publish_media` method no longer requires `ig_id` parameter (stored in instance)
+  - Simplified method calls: `publisher.publish_media(media_url: url, media_type: 'IMAGE')`
+  - Breaking change: existing code needs to be updated to new initialization pattern
 
 ### Added
 - **Authenticator#get_user_info_from_code** - New convenience method that combines authentication flow
@@ -13,6 +20,13 @@
   - `get_user_info` returns `{ id: "...", username: "...", media_count: 42 }` (Ruby convention)
   - `get_long_lived_access_token` returns `{ access_token: "...", token_type: "bearer", expires_in: 5184000 }`
   - `refresh_access_token` returns `{ access_token: "...", token_type: "bearer", expires_in: 5184000 }`
+- **Publisher class refactoring** - Improved code structure and maintainability
+  - Split large methods into smaller, focused functions for better readability
+  - Extracted media container body building logic into separate method
+  - Separated carousel media preparation logic for better organization
+  - Improved status handling with dedicated error management methods
+  - All methods now comply with linting standards (≤10 lines, ≤5 parameters)
+  - Enhanced code modularity while maintaining backward compatibility
 
 ### Tests
 - **Complete test suite** - Added comprehensive RSpec test coverage for all components

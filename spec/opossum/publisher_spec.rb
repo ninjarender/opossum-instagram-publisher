@@ -4,8 +4,8 @@ require "spec_helper"
 
 RSpec.describe Opossum::Publisher do
   let(:access_token) { "test_access_token" }
-  let(:publisher) { described_class.new(access_token: access_token) }
   let(:ig_id) { "instagram_user_id_123" }
+  let(:publisher) { described_class.new(access_token: access_token, ig_id: ig_id) }
   let(:media_url) { "https://example.com/image.jpg" }
   let(:media_container_id) { "media_container_123" }
 
@@ -26,10 +26,9 @@ RSpec.describe Opossum::Publisher do
     end
 
     it "calls prepare_media_container with correct parameters" do
-      publisher.publish_media(ig_id: ig_id, media_url: media_url)
+      publisher.publish_media(media_url: media_url)
 
       expect(publisher).to have_received(:prepare_media_container).with(
-        ig_id: ig_id,
         media_url: media_url,
         media_type: "IMAGE",
         caption: nil
@@ -37,7 +36,7 @@ RSpec.describe Opossum::Publisher do
     end
 
     it "calls ApiHelper.post with correct parameters" do
-      publisher.publish_media(ig_id: ig_id, media_url: media_url)
+      publisher.publish_media(media_url: media_url)
 
       expect(Opossum::ApiHelper).to have_received(:post).with(
         path: expected_path,
@@ -50,14 +49,12 @@ RSpec.describe Opossum::Publisher do
       custom_media_type = "VIDEO"
 
       publisher.publish_media(
-        ig_id: ig_id,
         media_url: media_url,
         media_type: custom_media_type,
         caption: custom_caption
       )
 
       expect(publisher).to have_received(:prepare_media_container).with(
-        ig_id: ig_id,
         media_url: media_url,
         media_type: custom_media_type,
         caption: custom_caption
@@ -68,7 +65,7 @@ RSpec.describe Opossum::Publisher do
       mock_response = { "id" => "published_media_123" }
       allow(Opossum::ApiHelper).to receive(:post).and_return(mock_response)
 
-      result = publisher.publish_media(ig_id: ig_id, media_url: media_url)
+      result = publisher.publish_media(media_url: media_url)
 
       expect(result).to eq(mock_response)
     end
@@ -81,13 +78,11 @@ RSpec.describe Opossum::Publisher do
           allow(publisher).to receive(:create_media_container).and_return(media_container_id)
 
           result = publisher.send(:prepare_media_container,
-                                  ig_id: ig_id,
                                   media_url: media_url,
                                   media_type: "IMAGE",
                                   caption: nil)
 
           expect(publisher).to have_received(:create_media_container).once.with(
-            ig_id: ig_id,
             media_url: media_url,
             media_type: "IMAGE",
             caption: nil
@@ -108,20 +103,17 @@ RSpec.describe Opossum::Publisher do
 
         it "creates containers for each child and then a carousel container" do
           result = publisher.send(:prepare_media_container,
-                                  ig_id: ig_id,
                                   media_url: media_urls,
                                   media_type: "CAROUSEL",
                                   caption: "Carousel caption")
 
           # Should create child containers
           expect(publisher).to have_received(:create_media_container).with(
-            ig_id: ig_id,
             media_url: media_urls[0],
             is_carousel_item: true,
             caption: "Carousel caption"
           )
           expect(publisher).to have_received(:create_media_container).with(
-            ig_id: ig_id,
             media_url: media_urls[1],
             is_carousel_item: true,
             caption: "Carousel caption"
@@ -129,7 +121,6 @@ RSpec.describe Opossum::Publisher do
 
           # Should create carousel container with child IDs
           expect(publisher).to have_received(:create_media_container).with(
-            ig_id: ig_id,
             media_url: [child_id_1, child_id_2],
             media_type: "CAROUSEL",
             caption: "Carousel caption"
@@ -161,7 +152,6 @@ RSpec.describe Opossum::Publisher do
 
         it "sends correct request for image" do
           result = publisher.send(:create_media_container,
-                                  ig_id: ig_id,
                                   media_url: media_url,
                                   media_type: "IMAGE")
 
@@ -186,7 +176,6 @@ RSpec.describe Opossum::Publisher do
 
         it "sends correct request for video" do
           publisher.send(:create_media_container,
-                         ig_id: ig_id,
                          media_url: video_url,
                          media_type: "VIDEO",
                          caption: "Video caption")
@@ -211,7 +200,6 @@ RSpec.describe Opossum::Publisher do
 
         it "sends correct request for reels" do
           publisher.send(:create_media_container,
-                         ig_id: ig_id,
                          media_url: reels_url,
                          media_type: "REELS")
 
@@ -235,7 +223,6 @@ RSpec.describe Opossum::Publisher do
 
         it "sends correct request for stories" do
           publisher.send(:create_media_container,
-                         ig_id: ig_id,
                          media_url: story_url,
                          media_type: "STORIES")
 
@@ -259,7 +246,6 @@ RSpec.describe Opossum::Publisher do
 
         it "sends correct request for carousel" do
           publisher.send(:create_media_container,
-                         ig_id: ig_id,
                          media_url: children_ids,
                          media_type: "CAROUSEL",
                          caption: "Carousel caption")
@@ -285,7 +271,6 @@ RSpec.describe Opossum::Publisher do
 
         it "includes optional parameters when provided" do
           publisher.send(:create_media_container,
-                         ig_id: ig_id,
                          media_url: media_url,
                          media_type: "IMAGE",
                          is_carousel_item: true,
@@ -307,7 +292,6 @@ RSpec.describe Opossum::Publisher do
           }
 
           publisher.send(:create_media_container,
-                         ig_id: ig_id,
                          media_url: media_url,
                          media_type: "IMAGE")
 
@@ -320,7 +304,6 @@ RSpec.describe Opossum::Publisher do
 
       it "waits for media container status and returns container id" do
         result = publisher.send(:create_media_container,
-                                ig_id: ig_id,
                                 media_url: media_url)
 
         expect(publisher).to have_received(:wait_for_media_container_status).with(
@@ -451,7 +434,7 @@ RSpec.describe Opossum::Publisher do
 
       it "propagates the error" do
         expect do
-          publisher.publish_media(ig_id: ig_id, media_url: media_url)
+          publisher.publish_media(media_url: media_url)
         end.to raise_error(Opossum::Error, error_message)
       end
     end
@@ -466,7 +449,7 @@ RSpec.describe Opossum::Publisher do
 
       it "propagates the error" do
         expect do
-          publisher.send(:create_media_container, ig_id: ig_id, media_url: media_url)
+          publisher.send(:create_media_container, media_url: media_url)
         end.to raise_error(Opossum::Error, error_message)
       end
     end
