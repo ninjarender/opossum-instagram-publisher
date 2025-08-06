@@ -1,3 +1,13 @@
+## [0.2.1] - 2025-08-07
+
+### Improved
+- **Instagram API Response Handling** - Enhanced error handling and response processing
+  - Improved JSON parsing with better error messages when API returns invalid JSON
+  - Added specific Instagram API error detection and messaging via `error_message` field
+  - Enhanced HTTP error handling with more descriptive error messages
+  - Better separation of concerns in ApiHelper with dedicated private methods for response processing
+  - More robust error handling chain: HTTP errors → JSON parsing errors → Instagram API errors
+
 ## [0.2.0] - 2025-08-06
 
 ### Changed

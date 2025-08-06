@@ -131,7 +131,7 @@ result = publisher.publish_media(
 
 ## Error Handling
 
-The gem includes comprehensive error handling for API responses:
+The gem includes comprehensive error handling for API responses with enhanced Instagram API error detection:
 
 ```ruby
 begin
@@ -145,8 +145,18 @@ begin
   )
 rescue Opossum::Error => e
   puts "Error: #{e.message}"
+  # Examples of error messages:
+  # "HTTP Error: Connection failed"
+  # "JSON Parse Error: Unexpected token"
+  # "Instagram API Error: Invalid media URL"
 end
 ```
+
+**Error Handling Features:**
+- **HTTP Error Detection** - Catches network and connection issues with descriptive messages
+- **JSON Parsing** - Handles malformed API responses with clear error descriptions
+- **Instagram API Errors** - Automatically detects and reports Instagram-specific errors via `error_message` field
+- **Error Chain Processing** - Processes errors in logical order: HTTP → JSON → Instagram API
 
 ## Supported Media Types
 
