@@ -35,9 +35,13 @@ module Opossum
     end
 
     def prepare_carousel_media(media_urls:, media_type:, caption:)
-      children_ids = media_urls.map do |url|
-        create_media_container(media_url: url, is_carousel_item: true, caption: caption)
+      threads = media_urls.map do |url|
+        Thread.new do
+          create_media_container(media_url: url, is_carousel_item: true, caption: caption)
+        end
       end
+
+      children_ids = threads.map(&:value)
 
       create_media_container(media_url: children_ids, media_type: media_type, caption: caption)
     end

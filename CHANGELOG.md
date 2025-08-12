@@ -1,3 +1,14 @@
+## [0.3.0] - 2025-08-12
+
+### Improved
+- **Publisher Performance** - Enhanced carousel media processing with parallel execution
+  - `prepare_carousel_media` now uses Thread-based parallel processing for media container creation
+  - Significantly improved upload speed for carousels with multiple media items
+  - Each media URL in carousel is processed concurrently instead of sequentially
+- **Error Handling** - Enhanced Error class with additional error context
+  - Added `code` and `subcode` attributes to Error class for better error identification
+  - Improved error initialization with optional code and subcode parameters
+
 ## [0.2.1] - 2025-08-07
 
 ### Improved

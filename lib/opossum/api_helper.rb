@@ -37,7 +37,7 @@ module Opossum
 
       def handle_response(response)
         parsed_response = parse_json(response.body)
-        check_api_errors(parsed_response)
+        check_api_errors(parsed_response, response.success?)
         parsed_response
       rescue Faraday::Error => e
         raise Opossum::Error, "HTTP Error: #{e.message}"
@@ -49,10 +49,16 @@ module Opossum
         raise Opossum::Error, "JSON Parse Error: #{e.message}"
       end
 
-      def check_api_errors(parsed_response)
-        return unless parsed_response["error_message"]
+      def check_api_errors(parsed_response, success)
+        return if success
 
-        raise Opossum::Error, "Instagram API Error: #{parsed_response["error_message"]}"
+        error_message = parsed_response["error_message"] || parsed_response.dig("error", "message")
+
+        raise Opossum::Error.new(
+          "Instagram API Error: #{error_message}",
+          code: parsed_response.dig("error", "code"),
+          subcode: parsed_response.dig("error", "subcode")
+        )
       end
     end
   end
