@@ -1,3 +1,9 @@
+## [0.3.1] - 2025-01-27
+
+### Fixed
+- **API Error Handling** - Improved error handling in ApiHelper
+  - Enhanced error message extraction with fallback to nested error structure
+
 ## [0.3.0] - 2025-08-12
 
 ### Improved

@@ -57,7 +57,7 @@ module Opossum
         raise Opossum::Error.new(
           "Instagram API Error: #{error_message}",
           code: parsed_response.dig("error", "code"),
-          subcode: parsed_response.dig("error", "subcode")
+          subcode: parsed_response.dig("error", "subcode") || parsed_response.dig("error", "error_subcode")
         )
       end
     end
