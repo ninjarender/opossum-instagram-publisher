@@ -72,7 +72,7 @@
 ### Added
 
 #### Core Architecture
-- **Authenticator class** - OAuth authentication with Instagram API with Instagram 
+- **Authenticator class** - OAuth authentication with Instagram API with Instagram Login
   - Exchange authorization code for access token
   - Support for client credentials and redirect URI configuration
 
