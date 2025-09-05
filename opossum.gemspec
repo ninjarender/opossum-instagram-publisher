@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors = ["Vadym Kruchyna"]
   spec.email = ["kruchina.vadim@gmail.com"]
 
-  spec.summary = "Ruby gem for publishing media to Instagram using Instagram Basic Display API"
+  spec.summary = "Ruby gem for publishing media to Instagram using Instagram API with Instagram "
   spec.description = <<~DESCRIPTION
     A comprehensive Ruby library for Instagram media publishing with OAuth authentication, user information retrieval,
     and support for images, videos, carousels with captions. Features include token management, error handling,

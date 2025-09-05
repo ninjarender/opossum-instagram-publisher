@@ -1,13 +1,13 @@
 # OpossumInstagramPublisher
 
-A Ruby gem for publishing media to Instagram using Instagram Basic Display API and Instagram Graph API. This gem provides a simple interface to authenticate users via Instagram Login and publish images, videos, and carousel posts to their Instagram accounts.
+A Ruby gem for publishing media to Instagram using Instagram API with Instagram. This gem provides a simple interface to authenticate users via Instagram Login and publish images, videos, and carousel posts to their Instagram accounts.
 
 ## Prerequisites
 
 Before using this gem, you need to:
 
-1. Create a Facebook App and configure Instagram Basic Display API
-2. Set up Instagram Basic Display API permissions
+1. Create a Facebook App and configure Instagram API with Instagram 
+2. Set up Instagram API with Instagram permissions
 3. Configure OAuth redirect URIs in your Facebook App settings
 4. Obtain your Instagram Business Account ID
 
