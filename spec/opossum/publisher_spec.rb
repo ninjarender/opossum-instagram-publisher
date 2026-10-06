@@ -31,7 +31,8 @@ RSpec.describe Opossum::Publisher do
       expect(publisher).to have_received(:prepare_media_container).with(
         media_url: media_url,
         media_type: "IMAGE",
-        caption: nil
+        caption: nil,
+        media_format: nil
       )
     end
 
@@ -57,7 +58,8 @@ RSpec.describe Opossum::Publisher do
       expect(publisher).to have_received(:prepare_media_container).with(
         media_url: media_url,
         media_type: custom_media_type,
-        caption: custom_caption
+        caption: custom_caption,
+        media_format: nil
       )
     end
 
@@ -85,7 +87,8 @@ RSpec.describe Opossum::Publisher do
           expect(publisher).to have_received(:create_media_container).once.with(
             media_url: media_url,
             media_type: "IMAGE",
-            caption: nil
+            caption: nil,
+            media_format: nil
           )
           expect(result).to eq(media_container_id)
         end
@@ -230,6 +233,42 @@ RSpec.describe Opossum::Publisher do
             path: expected_path,
             body: expected_body
           )
+        end
+
+        it "sends video_url when media_format is VIDEO" do
+          publisher.send(:create_media_container,
+                         media_url: story_url,
+                         media_type: "STORIES",
+                         media_format: "VIDEO")
+
+          expect(Opossum::ApiHelper).to have_received(:post).with(
+            path: expected_path,
+            body: expected_body
+          )
+        end
+
+        context "with an image story" do
+          let(:story_url) { "https://example.com/story.jpg" }
+          let(:expected_body) do
+            {
+              access_token: access_token,
+              media_type: "STORIES",
+              caption: nil,
+              image_url: story_url
+            }
+          end
+
+          it "sends image_url when media_format is IMAGE" do
+            publisher.send(:create_media_container,
+                           media_url: story_url,
+                           media_type: "STORIES",
+                           media_format: "IMAGE")
+
+            expect(Opossum::ApiHelper).to have_received(:post).with(
+              path: expected_path,
+              body: expected_body
+            )
+          end
         end
       end
 

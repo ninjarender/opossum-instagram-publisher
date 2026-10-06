@@ -121,6 +121,13 @@ result = publisher.publish_media(
   caption: 'Photo collection from my trip ✈️ #travel #memories'
 )
 
+# Publish a story (media_format picks image_url vs video_url; default is VIDEO)
+result = publisher.publish_media(
+  media_url: 'https://example.com/story.jpg',
+  media_type: 'STORIES',
+  media_format: 'IMAGE'
+)
+
 # That's it! publish_media handles everything automatically:
 # - Creates media container(s)
 # - Waits for processing to complete  
@@ -163,7 +170,7 @@ end
 - **IMAGE** - Single images (JPEG, PNG) with optional caption
 - **VIDEO** - Single videos (MP4, MOV) with optional caption
 - **REELS** - Instagram Reels with optional caption
-- **STORIES** - Instagram Stories with optional caption
+- **STORIES** - Instagram Stories; pass `media_format: 'IMAGE'` or `'VIDEO'` (default) to choose the URL field
 - **CAROUSEL** - Multiple images in a single post with optional caption (automatically handled when passing an array of URLs)
 
 **Features:**

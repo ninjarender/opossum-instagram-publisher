@@ -12,9 +12,12 @@ module Opossum
       @ig_id = ig_id
     end
 
-    def publish_media(media_url:, media_type: "IMAGE", caption: nil)
+    # media_format applies to STORIES only: "IMAGE" sends the url as image_url,
+    # "VIDEO" (the default) as video_url. Other media types ignore it.
+    def publish_media(media_url:, media_type: "IMAGE", caption: nil, media_format: nil)
       path = "#{INSTAGRAM_GRAPH_API_ENDPOINT}/#{GRAPH_API_VERSION}/#{ig_id}/media_publish"
-      media_container_id = prepare_media_container(media_url: media_url, media_type: media_type, caption: caption)
+      media_container_id = prepare_media_container(media_url: media_url, media_type: media_type, caption: caption,
+                                                   media_format: media_format)
 
       ApiHelper.post(
         path: path,
@@ -26,11 +29,12 @@ module Opossum
 
     attr_reader :ig_id
 
-    def prepare_media_container(media_url:, media_type:, caption:)
+    def prepare_media_container(media_url:, media_type:, caption:, media_format: nil)
       if media_url.is_a?(Array)
         prepare_carousel_media(media_urls: media_url, media_type: media_type, caption: caption)
       else
-        create_media_container(media_url: media_url, media_type: media_type, caption: caption)
+        create_media_container(media_url: media_url, media_type: media_type, caption: caption,
+                               media_format: media_format)
       end
     end
 
@@ -46,10 +50,10 @@ module Opossum
       create_media_container(media_url: children_ids, media_type: media_type, caption: caption)
     end
 
-    def create_media_container(media_url:, media_type: "IMAGE", is_carousel_item: false, upload_type: nil, caption: nil)
+    # options: is_carousel_item:, upload_type:, media_format:
+    def create_media_container(media_url:, media_type: "IMAGE", caption: nil, **options)
       path = "#{INSTAGRAM_GRAPH_API_ENDPOINT}/#{GRAPH_API_VERSION}/#{ig_id}/media"
-      body = build_media_container_body(media_url: media_url, media_type: media_type, caption: caption,
-                                        is_carousel_item: is_carousel_item, upload_type: upload_type)
+      body = build_media_container_body(media_url: media_url, media_type: media_type, caption: caption, **options)
 
       response = ApiHelper.post(path: path, body: body)
       media_container_id = response["id"]
@@ -58,20 +62,22 @@ module Opossum
       media_container_id
     end
 
-    def build_media_container_body(media_url:, media_type:, caption:, is_carousel_item:, upload_type:)
+    def build_media_container_body(media_url:, media_type:, caption:, **options)
       body = { access_token: access_token, media_type: media_type, caption: caption }
-      set_media_url_field(body, media_url, media_type)
-      body[:is_carousel_item] = is_carousel_item if is_carousel_item
-      body[:upload_type] = upload_type if upload_type
+      set_media_url_field(body, media_url, media_type, options[:media_format])
+      body[:is_carousel_item] = options[:is_carousel_item] if options[:is_carousel_item]
+      body[:upload_type] = options[:upload_type] if options[:upload_type]
       body
     end
 
-    def set_media_url_field(body, media_url, media_type)
+    def set_media_url_field(body, media_url, media_type, media_format = nil)
       case media_type
       when "IMAGE"
         body[:image_url] = media_url
-      when "VIDEO", "REELS", "STORIES"
+      when "VIDEO", "REELS"
         body[:video_url] = media_url
+      when "STORIES"
+        body[media_format.to_s.upcase == "IMAGE" ? :image_url : :video_url] = media_url
       when "CAROUSEL"
         body[:children] = media_url
       end

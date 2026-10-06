@@ -1,3 +1,10 @@
+## [0.4.0] - 2026-10-06
+
+### Added
+- **Image stories** - `Publisher#publish_media` accepts `media_format: "IMAGE" | "VIDEO"` for `media_type: "STORIES"`
+  - `"IMAGE"` sends the media URL as `image_url`; `"VIDEO"` (and the default, unchanged) as `video_url`
+  - Other media types ignore `media_format`
+
 ## [0.3.1] - 2025-01-27
 
 ### Fixed
