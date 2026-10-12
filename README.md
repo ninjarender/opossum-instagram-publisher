@@ -121,6 +121,20 @@ result = publisher.publish_media(
   caption: 'Photo collection from my trip ✈️ #travel #memories'
 )
 
+# Publish image with alt text (accessibility; images only)
+result = publisher.publish_media(
+  media_url: 'https://example.com/image.jpg',
+  media_type: 'IMAGE',
+  alt_text: 'Team photo at the rally'
+)
+
+# Publish carousel with per-image alt text (array parallel to media_url, nil to skip one)
+result = publisher.publish_media(
+  media_url: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'],
+  media_type: 'CAROUSEL',
+  alt_text: ['Team photo at the rally', nil]
+)
+
 # Publish a story (media_format picks image_url vs video_url; default is VIDEO)
 result = publisher.publish_media(
   media_url: 'https://example.com/story.jpg',

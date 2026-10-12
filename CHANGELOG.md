@@ -1,3 +1,10 @@
+## [0.5.0] - 2026-10-12
+
+### Added
+- **Alt text** - `Publisher#publish_media` accepts `alt_text:`
+  - A `String` for a single image, or an `Array` parallel to `media_url` for a carousel
+  - Sent as `alt_text` on `IMAGE` containers only (Instagram does not support it on videos, reels or stories); blank values are omitted
+
 ## [0.4.0] - 2026-10-06
 
 ### Added

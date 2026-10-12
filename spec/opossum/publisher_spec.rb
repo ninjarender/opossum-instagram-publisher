@@ -32,7 +32,20 @@ RSpec.describe Opossum::Publisher do
         media_url: media_url,
         media_type: "IMAGE",
         caption: nil,
-        media_format: nil
+        media_format: nil,
+        alt_text: nil
+      )
+    end
+
+    it "passes alt_text through to prepare_media_container" do
+      publisher.publish_media(media_url: media_url, alt_text: "Team photo at the rally")
+
+      expect(publisher).to have_received(:prepare_media_container).with(
+        media_url: media_url,
+        media_type: "IMAGE",
+        caption: nil,
+        media_format: nil,
+        alt_text: "Team photo at the rally"
       )
     end
 
@@ -59,7 +72,8 @@ RSpec.describe Opossum::Publisher do
         media_url: media_url,
         media_type: custom_media_type,
         caption: custom_caption,
-        media_format: nil
+        media_format: nil,
+        alt_text: nil
       )
     end
 
@@ -88,7 +102,8 @@ RSpec.describe Opossum::Publisher do
             media_url: media_url,
             media_type: "IMAGE",
             caption: nil,
-            media_format: nil
+            media_format: nil,
+            alt_text: nil
           )
           expect(result).to eq(media_container_id)
         end
@@ -114,12 +129,14 @@ RSpec.describe Opossum::Publisher do
           expect(publisher).to have_received(:create_media_container).with(
             media_url: media_urls[0],
             is_carousel_item: true,
-            caption: "Carousel caption"
+            caption: "Carousel caption",
+            alt_text: nil
           )
           expect(publisher).to have_received(:create_media_container).with(
             media_url: media_urls[1],
             is_carousel_item: true,
-            caption: "Carousel caption"
+            caption: "Carousel caption",
+            alt_text: nil
           )
 
           # Should create carousel container with child IDs
@@ -130,6 +147,32 @@ RSpec.describe Opossum::Publisher do
           )
 
           expect(result).to eq(carousel_container_id)
+        end
+
+        it "gives each child its own alt text and none to the carousel container" do
+          publisher.send(:prepare_media_container,
+                         media_url: media_urls,
+                         media_type: "CAROUSEL",
+                         caption: "Carousel caption",
+                         alt_text: ["Team photo at the rally", nil])
+
+          expect(publisher).to have_received(:create_media_container).with(
+            media_url: media_urls[0],
+            is_carousel_item: true,
+            caption: "Carousel caption",
+            alt_text: "Team photo at the rally"
+          )
+          expect(publisher).to have_received(:create_media_container).with(
+            media_url: media_urls[1],
+            is_carousel_item: true,
+            caption: "Carousel caption",
+            alt_text: nil
+          )
+          expect(publisher).to have_received(:create_media_container).with(
+            media_url: [child_id_1, child_id_2],
+            media_type: "CAROUSEL",
+            caption: "Carousel caption"
+          )
         end
       end
     end
@@ -338,6 +381,60 @@ RSpec.describe Opossum::Publisher do
             path: expected_path,
             body: expected_body_minimal
           )
+        end
+      end
+
+      context "with alt_text" do
+        it "sends alt_text for an IMAGE container" do
+          publisher.send(:create_media_container,
+                         media_url: media_url,
+                         media_type: "IMAGE",
+                         alt_text: "Team photo at the rally")
+
+          expect(Opossum::ApiHelper).to have_received(:post).with(
+            path: expected_path,
+            body: { access_token: access_token, media_type: "IMAGE", caption: nil, image_url: media_url,
+                    alt_text: "Team photo at the rally" }
+          )
+        end
+
+        it "sends alt_text for a carousel image item" do
+          publisher.send(:create_media_container,
+                         media_url: media_url,
+                         is_carousel_item: true,
+                         alt_text: "Team photo at the rally")
+
+          expect(Opossum::ApiHelper).to have_received(:post).with(
+            path: expected_path,
+            body: { access_token: access_token, media_type: "IMAGE", caption: nil, image_url: media_url,
+                    is_carousel_item: true, alt_text: "Team photo at the rally" }
+          )
+        end
+
+        %w[REELS VIDEO STORIES].each do |video_type|
+          it "does not send alt_text for a #{video_type} container" do
+            publisher.send(:create_media_container,
+                           media_url: "https://example.com/video.mp4",
+                           media_type: video_type,
+                           alt_text: "Ignored")
+
+            expect(Opossum::ApiHelper).to have_received(:post).with(
+              path: expected_path,
+              body: { access_token: access_token, media_type: video_type, caption: nil,
+                      video_url: "https://example.com/video.mp4" }
+            )
+          end
+        end
+
+        ["", "   ", nil].each do |blank|
+          it "omits alt_text when it is #{blank.inspect}" do
+            publisher.send(:create_media_container, media_url: media_url, media_type: "IMAGE", alt_text: blank)
+
+            expect(Opossum::ApiHelper).to have_received(:post).with(
+              path: expected_path,
+              body: { access_token: access_token, media_type: "IMAGE", caption: nil, image_url: media_url }
+            )
+          end
         end
       end
 

@@ -14,10 +14,14 @@ module Opossum
 
     # media_format applies to STORIES only: "IMAGE" sends the url as image_url,
     # "VIDEO" (the default) as video_url. Other media types ignore it.
-    def publish_media(media_url:, media_type: "IMAGE", caption: nil, media_format: nil)
+    #
+    # alt_text is sent only for image containers (Instagram ignores it on
+    # videos, reels and stories): a String for a single image, or an Array
+    # parallel to media_url for a carousel (nil entries are skipped).
+    def publish_media(media_url:, media_type: "IMAGE", caption: nil, media_format: nil, alt_text: nil)
       path = "#{INSTAGRAM_GRAPH_API_ENDPOINT}/#{GRAPH_API_VERSION}/#{ig_id}/media_publish"
       media_container_id = prepare_media_container(media_url: media_url, media_type: media_type, caption: caption,
-                                                   media_format: media_format)
+                                                   media_format: media_format, alt_text: alt_text)
 
       ApiHelper.post(
         path: path,
@@ -29,19 +33,20 @@ module Opossum
 
     attr_reader :ig_id
 
-    def prepare_media_container(media_url:, media_type:, caption:, media_format: nil)
+    def prepare_media_container(media_url:, media_type:, caption:, media_format: nil, alt_text: nil)
       if media_url.is_a?(Array)
-        prepare_carousel_media(media_urls: media_url, media_type: media_type, caption: caption)
+        prepare_carousel_media(media_urls: media_url, media_type: media_type, caption: caption,
+                               alt_texts: Array(alt_text))
       else
         create_media_container(media_url: media_url, media_type: media_type, caption: caption,
-                               media_format: media_format)
+                               media_format: media_format, alt_text: alt_text)
       end
     end
 
-    def prepare_carousel_media(media_urls:, media_type:, caption:)
-      threads = media_urls.map do |url|
+    def prepare_carousel_media(media_urls:, media_type:, caption:, alt_texts: [])
+      threads = media_urls.each_with_index.map do |url, index|
         Thread.new do
-          create_media_container(media_url: url, is_carousel_item: true, caption: caption)
+          create_media_container(media_url: url, is_carousel_item: true, caption: caption, alt_text: alt_texts[index])
         end
       end
 
@@ -50,7 +55,7 @@ module Opossum
       create_media_container(media_url: children_ids, media_type: media_type, caption: caption)
     end
 
-    # options: is_carousel_item:, upload_type:, media_format:
+    # options: is_carousel_item:, upload_type:, media_format:, alt_text:
     def create_media_container(media_url:, media_type: "IMAGE", caption: nil, **options)
       path = "#{INSTAGRAM_GRAPH_API_ENDPOINT}/#{GRAPH_API_VERSION}/#{ig_id}/media"
       body = build_media_container_body(media_url: media_url, media_type: media_type, caption: caption, **options)
@@ -67,7 +72,12 @@ module Opossum
       set_media_url_field(body, media_url, media_type, options[:media_format])
       body[:is_carousel_item] = options[:is_carousel_item] if options[:is_carousel_item]
       body[:upload_type] = options[:upload_type] if options[:upload_type]
+      body[:alt_text] = options[:alt_text] if alt_text_applicable?(media_type, options[:alt_text])
       body
+    end
+
+    def alt_text_applicable?(media_type, alt_text)
+      media_type == "IMAGE" && !alt_text.nil? && !alt_text.to_s.strip.empty?
     end
 
     def set_media_url_field(body, media_url, media_type, media_format = nil)
